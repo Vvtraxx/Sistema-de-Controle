@@ -50,6 +50,6 @@ O projeto é organizado da seguinte forma:
 ├── data/
 │   ├── despesas.txt
 │   ├── tipos_despesa.txt
-│   └── usuarios.txt
+│   └── usuarios.txtgit 
 │
 └── README.md
