@@ -13,7 +13,7 @@ public class Usuario {
     public Usuario(String nome, String login, String senha) {
         this.nome = nome;
         this.login = login;
-        this.senha = criptografarSenha(senha);
+        this.senha = CriptografiaSenha.criptografar(senha);
     }
 
     public String getNome() {
@@ -28,14 +28,17 @@ public class Usuario {
         return senha;
     }
 
+    // Adiciona um novo usuário ao arquivo "usuarios.txt"
     public static void adicionarUsuario(Usuario usuario) {
         try (FileWriter writer = new FileWriter("usuarios.txt", true)) {
             writer.write(usuario.getLogin() + ";" + usuario.getSenha() + ";" + usuario.getNome() + "\n");
+            System.out.println("Usuário adicionado com sucesso.");
         } catch (IOException e) {
             System.out.println("Erro ao adicionar usuário: " + e.getMessage());
         }
     }
 
+    // Lista todos os usuários do arquivo "usuarios.txt"
     public static List<Usuario> listarUsuarios() {
         List<Usuario> usuarios = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader("usuarios.txt"))) {
@@ -43,7 +46,11 @@ public class Usuario {
             while ((linha = reader.readLine()) != null) {
                 String[] partes = linha.split(";");
                 if (partes.length == 3) {
-                    usuarios.add(new Usuario(partes[2], partes[0], partes[1]));
+                    String nome = partes[2];
+                    String login = partes[0];
+                    String senhaCriptografada = partes[1];
+                    String senhaDescriptografada = CriptografiaSenha.descriptografar(senhaCriptografada);
+                    usuarios.add(new Usuario(nome, login, senhaDescriptografada));
                 }
             }
         } catch (IOException e) {
@@ -52,39 +59,48 @@ public class Usuario {
         return usuarios;
     }
 
+    // Edita o nome de um usuário existente
     public static void editarUsuario(String login, String novoNome) {
         List<Usuario> usuarios = listarUsuarios();
+        boolean encontrado = false;
         try (FileWriter writer = new FileWriter("usuarios.txt", false)) {
             for (Usuario usuario : usuarios) {
                 if (usuario.getLogin().equals(login)) {
                     writer.write(usuario.getLogin() + ";" + usuario.getSenha() + ";" + novoNome + "\n");
+                    encontrado = true;
                 } else {
                     writer.write(usuario.getLogin() + ";" + usuario.getSenha() + ";" + usuario.getNome() + "\n");
                 }
+            }
+            if (encontrado) {
+                System.out.println("Usuário editado com sucesso.");
+            } else {
+                System.out.println("Usuário não encontrado.");
             }
         } catch (IOException e) {
             System.out.println("Erro ao editar usuário: " + e.getMessage());
         }
     }
 
+    // Exclui um usuário existente
     public static void excluirUsuario(String login) {
         List<Usuario> usuarios = listarUsuarios();
+        boolean encontrado = false;
         try (FileWriter writer = new FileWriter("usuarios.txt", false)) {
             for (Usuario usuario : usuarios) {
                 if (!usuario.getLogin().equals(login)) {
                     writer.write(usuario.getLogin() + ";" + usuario.getSenha() + ";" + usuario.getNome() + "\n");
+                } else {
+                    encontrado = true;
                 }
+            }
+            if (encontrado) {
+                System.out.println("Usuário excluído com sucesso.");
+            } else {
+                System.out.println("Usuário não encontrado.");
             }
         } catch (IOException e) {
             System.out.println("Erro ao excluir usuário: " + e.getMessage());
         }
-    }
-
-    private static String criptografarSenha(String senha) {
-        StringBuilder criptografada = new StringBuilder();
-        for (char c : senha.toCharArray()) {
-            criptografada.append((int) c).append(" ");
-        }
-        return criptografada.toString().trim();
     }
 }
